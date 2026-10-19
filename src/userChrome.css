@@ -8,7 +8,7 @@
 }
 
 .tabbrowser-tab[usercontextid]:not([usercontextid="0"]) .tab-icon-stack::after {
-  content: "";
+  content: var(--zen-container-dot-content, none);
   position: absolute;
   /* Measured from the image, since its wrapper also contains margins/badges. */
   inset: auto;
@@ -19,7 +19,8 @@
   margin: 0 !important;
   padding: 0;
   transform: translate(-50%, -50%);
-  visibility: var(--zen-container-dot-visibility, hidden);
+  /* Inherit hidden workspace/tab state; forcing visible exposes ghost circles. */
+  visibility: inherit;
   z-index: -1;
   border-radius: 50%;
   background-color: var(--identity-tab-color, transparent);

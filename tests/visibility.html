@@ -1,0 +1,33 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Container dot visibility regression</title>
+<link rel="stylesheet" href="../src/userChrome.css">
+<style>
+  .tab-icon-stack {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    --identity-tab-color: orange;
+    --zen-container-dot-content: "";
+    /* Reproduce positioning styles left by the previous release. */
+    --zen-container-dot-visibility: visible;
+  }
+</style>
+<div id="workspace">
+  <div class="tabbrowser-tab" usercontextid="2">
+    <span class="tab-icon-stack"></span>
+  </div>
+</div>
+<pre id="result"></pre>
+<script>
+  const workspace = document.getElementById("workspace");
+  const stack = workspace.querySelector(".tab-icon-stack");
+  for (const visibility of ["visible", "hidden", "visible", "hidden"]) {
+    workspace.style.visibility = visibility;
+    const dot = getComputedStyle(stack, "::after");
+    if (dot.visibility !== visibility || dot.width !== "24px" || dot.height !== "24px") {
+      throw new Error(`Circle must follow workspace visibility: ${visibility}`);
+    }
+  }
+  document.getElementById("result").textContent = "PASS: circles follow workspace visibility without changing size.";
+</script>

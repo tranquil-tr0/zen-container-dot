@@ -106,6 +106,8 @@ copy first so the remote installation replaces it cleanly.
    window follows its own Space. Restart and confirm the restored Space works.
 6. Disable and re-enable the mod through Sine. Its dots should disappear and
    return, and disabling should restore the normal container line.
+7. Switch between Spaces and expand/collapse the sidebar. Hidden tabs and
+   inactive Spaces must not leave circles over other tabs, folders, or New Tab.
 
 If no dots appear, check that JavaScript is allowed and both files were copied.
 If matching container tabs also have dots, check the Space's assigned container.
@@ -118,3 +120,5 @@ These cover workspace changes, assignment changes, startup, independent windows,
 reload/unload cleanup, and manifest paths; actual Zen rendering needs the manual
 checks above. Geometry checks also cover asymmetric margins, scaling, layout
 changes, and cleanup of the positioning properties.
+`tests/visibility.html` checks the real CSS in a browser: circles must inherit
+workspace visibility, including when stale positioning properties are present.

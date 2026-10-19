@@ -90,7 +90,8 @@ test("circle tracks image bounds with asymmetric margins, scaling, and layout ch
     const y = parseFloat(properties.get("--zen-container-dot-y")) / 100 * outer.height + outer.top;
     assert.ok(Math.abs(x - (image.left + image.width / 2)) < 0.001);
     assert.ok(Math.abs(y - (image.top + image.height / 2)) < 0.001);
-    assert.equal(properties.get("--zen-container-dot-visibility"), "visible");
+    assert.equal(properties.get("--zen-container-dot-content"), '""');
+    assert.equal(properties.has("--zen-container-dot-visibility"), false);
   }
   checkCenter();
   // A scaled wrapper with the image shifted toward its right edge (RTL/sidebar).

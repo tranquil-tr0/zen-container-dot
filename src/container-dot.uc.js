@@ -15,7 +15,7 @@
   document.documentElement.appendChild(style);
   let timer;
   const stacks = new Map();
-  const geometryProperties = ["x", "y", "width", "height", "visibility"];
+  const geometryProperties = ["x", "y", "width", "height", "content"];
   const resizeObserver = new ResizeObserver(scheduleUpdate);
 
   function updateGeometry() {
@@ -50,7 +50,7 @@
         `${100 * (image.top + image.height / 2 - outer.top) / outer.height}%`,
         `${100 * image.width / outer.width}%`,
         `${100 * image.height / outer.height}%`,
-        "visible",
+        '""',
       ]]);
     }
     // Read all bounds before writing styles to avoid repeated layout work.
