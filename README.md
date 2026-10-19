@@ -1,5 +1,7 @@
 # Zen Container Dot
 
+Based on [Zen Container Halo by themanontv](https://github.com/themanontv/zen-container-halo).
+
 Places a 4px container-colored dot at the upper-left of tab favicons, including
 inactive tabs. The dot replaces the standard container line. Text, backgrounds,
 and borders keep Zen's normal styling.
@@ -75,8 +77,8 @@ changes to other mods.
 
 ## Install through Sine after publishing
 
-Once these files are pushed to your GitHub repository/branch, paste its repository
-URL into Sine Mods' custom GitHub install field. For a branch, use
+Paste `https://github.com/tranquil-tr0/zen-container-dot` into Sine Mods' custom
+GitHub install field. For another branch, use
 `https://github.com/OWNER/REPO/tree/BRANCH`. This repository includes `theme.json`
 with explicit CSS and script paths. Enable JavaScript from unofficial sources as
 above, install, and restart Zen. Do not install the old remote revision to test

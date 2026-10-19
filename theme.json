@@ -3,8 +3,8 @@
   "name": "Zen Container Dot",
   "description": "Container-colored favicon dots, excluding the viewed Space's assigned container.",
   "version": "1.1.0",
-  "author": "themanontv",
-  "homepage": "https://github.com/themanontv/zen-container-halo",
+  "author": "tranquil-tr0; based on themanontv's Zen Container Halo",
+  "homepage": "https://github.com/tranquil-tr0/zen-container-dot",
   "style": {
     "chrome": "src/userChrome.css"
   },
