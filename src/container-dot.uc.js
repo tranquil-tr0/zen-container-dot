@@ -14,6 +14,55 @@
   style.id = "zen-container-dot-workspace-style";
   document.documentElement.appendChild(style);
   let timer;
+  const stacks = new Map();
+  const geometryProperties = ["x", "y", "width", "height", "visibility"];
+  const resizeObserver = new ResizeObserver(scheduleUpdate);
+
+  function updateGeometry() {
+    const current = new Set(document.querySelectorAll(
+      '.tabbrowser-tab[usercontextid]:not([usercontextid="0"]) .tab-icon-stack'
+    ));
+    for (const [stack, icon] of stacks) {
+      if (!current.has(stack) || stack.querySelector(".tab-icon-image") !== icon) {
+        resizeObserver.unobserve(stack);
+        resizeObserver.unobserve(icon);
+        for (const property of geometryProperties) {
+          stack.style.removeProperty(`--zen-container-dot-${property}`);
+        }
+        stacks.delete(stack);
+      }
+    }
+    const measurements = [];
+    for (const stack of current) {
+      const icon = stack.querySelector(".tab-icon-image");
+      if (!icon) continue;
+      if (!stacks.has(stack)) {
+        stacks.set(stack, icon);
+        resizeObserver.observe(stack);
+        resizeObserver.observe(icon);
+      }
+      const outer = stack.getBoundingClientRect();
+      const image = icon.getBoundingClientRect();
+      if (!outer.width || !outer.height || !image.width || !image.height) continue;
+      // Percentages cancel tab scale transforms and work in either text direction.
+      measurements.push([stack, [
+        `${100 * (image.left + image.width / 2 - outer.left) / outer.width}%`,
+        `${100 * (image.top + image.height / 2 - outer.top) / outer.height}%`,
+        `${100 * image.width / outer.width}%`,
+        `${100 * image.height / outer.height}%`,
+        "visible",
+      ]]);
+    }
+    // Read all bounds before writing styles to avoid repeated layout work.
+    for (const [stack, values] of measurements) {
+      geometryProperties.forEach((property, index) => {
+        const name = `--zen-container-dot-${property}`;
+        if (stack.style.getPropertyValue(name) !== values[index]) {
+          stack.style.setProperty(name, values[index]);
+        }
+      });
+    }
+  }
 
   function update() {
     const workspace = window.gZenWorkspaces?.getActiveWorkspaceFromCache?.();
@@ -23,6 +72,7 @@
       ? `.tabbrowser-tab[usercontextid="${containerId}"] .tab-icon-stack::after { content: none !important; }`
       : "";
     if (style.textContent !== css) style.textContent = css;
+    updateGeometry();
   }
 
   function scheduleUpdate() {
@@ -37,6 +87,10 @@
     "ZenWorkspacesUIUpdate",
     "ZenWorkspaceDataChanged",
     "TabSelect",
+    "TabOpen",
+    "TabPinned",
+    "TabUnpinned",
+    "resize",
   ];
   for (const event of events) window.addEventListener(event, scheduleUpdate);
 
@@ -46,12 +100,20 @@
   observer.observe(document.documentElement, {
     subtree: true,
     attributes: true,
-    attributeFilter: ["active"],
+    childList: true,
+    attributeFilter: ["active", "hidden", "class", "usercontextid", "zen-sidebar-expanded", "zen-pinned-changed"],
   });
 
   function cleanup() {
     window.clearTimeout(timer);
     observer.disconnect();
+    resizeObserver.disconnect();
+    for (const stack of stacks.keys()) {
+      for (const property of geometryProperties) {
+        stack.style.removeProperty(`--zen-container-dot-${property}`);
+      }
+    }
+    stacks.clear();
     for (const event of events) window.removeEventListener(event, scheduleUpdate);
     window.removeEventListener("unload", cleanup);
     style.remove();

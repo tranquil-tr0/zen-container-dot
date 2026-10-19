@@ -6,6 +6,9 @@ Places a container-colored circle behind tab favicons, including inactive tabs.
 The circle is 8px larger than the favicon (24px for a standard 16px icon) and has
 35% opacity; the favicon retains its normal opacity. The circle replaces the
 standard container line. Text, backgrounds, and borders keep Zen's normal styling.
+The script measures each favicon's bounds to center the circle independently of
+wrapper margins, badges, sidebar layout, and text direction, and updates it when
+the icon or wrapper resizes.
 
 Tabs matching the **currently viewed Space's assigned container** have no dot.
 For example, in a Space assigned to Personal, Personal tabs have no dot and Work
@@ -104,12 +107,14 @@ copy first so the remote installation replaces it cleanly.
 6. Disable and re-enable the mod through Sine. Its dots should disappear and
    return, and disabling should restore the normal container line.
 
-If all container tabs have dots, check that JavaScript is allowed, both files were
-copied, and the Space has an assigned container. CSS alone cannot suppress the
-matching dot. A browser profile (the folder shown in `about:support`) is separate
+If no dots appear, check that JavaScript is allowed and both files were copied.
+If matching container tabs also have dots, check the Space's assigned container.
+The script is required for positioning and workspace matching.
+A browser profile (the folder shown in `about:support`) is separate
 from the container identity assigned to a Zen Space.
 
 Run the script's automated logic checks with `node --test tests/*.test.cjs`.
 These cover workspace changes, assignment changes, startup, independent windows,
 reload/unload cleanup, and manifest paths; actual Zen rendering needs the manual
-checks above.
+checks above. Geometry checks also cover asymmetric margins, scaling, layout
+changes, and cleanup of the positioning properties.
