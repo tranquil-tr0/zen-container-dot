@@ -2,9 +2,10 @@
 
 Based on [Zen Container Halo by themanontv](https://github.com/themanontv/zen-container-halo).
 
-Places a 4px container-colored dot at the upper-left of tab favicons, including
-inactive tabs. The dot replaces the standard container line. Text, backgrounds,
-and borders keep Zen's normal styling.
+Places a container-colored circle behind tab favicons, including inactive tabs.
+The circle is 8px larger than the favicon (24px for a standard 16px icon) and has
+35% opacity; the favicon retains its normal opacity. The circle replaces the
+standard container line. Text, backgrounds, and borders keep Zen's normal styling.
 
 Tabs matching the **currently viewed Space's assigned container** have no dot.
 For example, in a Space assigned to Personal, Personal tabs have no dot and Work

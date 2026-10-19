@@ -4,17 +4,21 @@
 .tabbrowser-tab[usercontextid]:not([usercontextid="0"]) .tab-icon-stack {
   position: relative;
   overflow: visible !important;
+  isolation: isolate;
 }
 
 .tabbrowser-tab[usercontextid]:not([usercontextid="0"]) .tab-icon-stack::after {
   content: "";
   position: absolute;
-  top: -2px;
-  left: -2px;
-  width: 4px;
-  height: 4px;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--tab-icon-size, 16px) + 8px);
+  height: calc(var(--tab-icon-size, 16px) + 8px);
+  transform: translate(-50%, -50%);
+  z-index: -1;
   border-radius: 50%;
   background-color: var(--identity-tab-color, transparent);
+  opacity: 0.35;
   pointer-events: none;
 }
 
