@@ -11,10 +11,12 @@
   content: "";
   position: absolute;
   top: 50%;
-  left: 50%;
+  /* The stack includes the favicon's end margin. Start 4px before the
+   * icon itself so the extra 8px is split evenly, including in RTL. */
+  inset-inline-start: -4px;
   width: calc(var(--tab-icon-size, 16px) + 8px);
   height: calc(var(--tab-icon-size, 16px) + 8px);
-  transform: translate(-50%, -50%);
+  transform: translateY(-50%);
   z-index: -1;
   border-radius: 50%;
   background-color: var(--identity-tab-color, transparent);
