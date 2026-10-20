@@ -24,6 +24,13 @@ restoring a session refresh the suppression. New tabs automatically inherit the
 current rule, including pinned tabs and Essentials. Each window uses its own
 viewed Space. The script relies on Zen's internal workspace API.
 
+Runtime updates are coalesced. Unrelated browser UI mutations and the mod's own
+stylesheet changes are ignored. Tab selection and container assignment update
+workspace matching without measuring icons; individual resize notifications
+remeasure only the affected icons. Tab discovery runs after relevant structural
+changes, while Space switches, sidebar layout changes, and window resizing retain
+a broader positioning refresh.
+
 ## Test the unpushed edits locally with Sine
 
 Sine's [README](https://github.com/CosmoCreeper/Sine#-test-mods-in-a-snap)
