@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Zen Container Dot
-// @description    Hide the dot for the viewed Space's assigned container.
+// @description    Hide the dot for the viewed Space's assigned container; show No Container dots there.
 // @include        chrome://browser/content/browser.xhtml
 // ==/UserScript==
 
@@ -13,7 +13,9 @@
   const style = document.createElementNS("http://www.w3.org/1999/xhtml", "style");
   style.id = "zen-container-dot-workspace-style";
   document.documentElement.appendChild(style);
-  const stackSelector = '.tabbrowser-tab[usercontextid]:not([usercontextid="0"]) .tab-icon-stack';
+  const containerStackSelector = '.tabbrowser-tab[usercontextid]:not([usercontextid="0"]) .tab-icon-stack';
+  const defaultStackSelector = '.tabbrowser-tab:is(:not([usercontextid]), [usercontextid="0"]) .tab-icon-stack';
+  const defaultAttribute = "zen-container-dot-default";
   const structureSelector = ".tabbrowser-tab, .tab-icon-stack, .tab-icon-image";
   const geometryProperties = ["x", "y", "width", "height", "content"];
   const stacks = new Map();
@@ -23,6 +25,8 @@
   let syncNeeded = false;
   let allNeeded = false;
   let workspaceNeeded = false;
+  // No Container tabs get dots only in a Space with an assigned container.
+  let defaultDots = false;
 
   const resizeObserver = new ResizeObserver(entries => {
     for (const { target } of entries) {
@@ -46,7 +50,8 @@
 
   // Discover/remove icons only after relevant structural changes, not on resize.
   function syncStacks() {
-    const current = new Set(document.querySelectorAll(stackSelector));
+    const selector = defaultDots ? `${containerStackSelector}, ${defaultStackSelector}` : containerStackSelector;
+    const current = new Set(document.querySelectorAll(selector));
     for (const [stack, icon] of stacks) {
       if (!current.has(stack) || stack.querySelector(".tab-icon-image") !== icon) {
         removeStack(stack, icon);
@@ -94,21 +99,29 @@
     }
   }
 
+  // Returns whether the set of tabs needing dots changed (No Container toggled).
   function updateWorkspace() {
     const workspace = window.gZenWorkspaces?.getActiveWorkspaceFromCache?.();
     const containerId = Number(workspace?.containerTabId ?? 0);
-    // No assigned container (or unavailable workspace API): keep all container dots.
-    const css = Number.isSafeInteger(containerId) && containerId > 0
+    // No assigned container (or unavailable workspace API): keep all container
+    // dots and leave No Container tabs without one.
+    const assigned = Number.isSafeInteger(containerId) && containerId > 0;
+    const css = assigned
       ? `.tabbrowser-tab[usercontextid="${containerId}"] .tab-icon-stack::after { content: none !important; }`
       : "";
     if (style.textContent !== css) style.textContent = css;
+    if (defaultDots === assigned) return false;
+    defaultDots = assigned;
+    document.documentElement.toggleAttribute(defaultAttribute, assigned);
+    return true;
   }
 
   function flush() {
     timer = undefined;
-    const sync = syncNeeded, all = allNeeded, workspace = workspaceNeeded;
+    let sync = syncNeeded;
+    const all = allNeeded, workspace = workspaceNeeded;
     syncNeeded = allNeeded = workspaceNeeded = false;
-    if (workspace) updateWorkspace();
+    if (workspace && updateWorkspace()) sync = true;
     if (sync) syncStacks();
     if (all) for (const stack of stacks.keys()) dirtyStacks.add(stack);
     if (dirtyStacks.size) updateGeometry();
@@ -212,6 +225,7 @@
     for (const event of events) window.removeEventListener(event, onEvent);
     window.removeEventListener("unload", cleanup);
     style.remove();
+    document.documentElement.removeAttribute(defaultAttribute);
     if (window.zenContainerDotCleanup === cleanup) delete window.zenContainerDotCleanup;
   }
 

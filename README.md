@@ -14,8 +14,10 @@ Tabs matching the **currently viewed Space's assigned container** have no dot.
 For example, in a Space assigned to Personal, Personal tabs have no dot and Work
 tabs have a Work-colored dot. Matching uses container IDs, not Space names or
 colors. Assign Personal to the Space; naming a Space "Personal" alone is not enough.
-No Container tabs continue to have no dot. In a Space with no assigned container,
-all container tabs retain their dots.
+In a Space with an assigned container, No Container tabs are treated like any
+other non-matching container and get a neutral dot in the tab's text color
+(override with `--zen-container-dot-default-color`). In a Space with no assigned
+container, No Container tabs have no dot and all container tabs retain their dots.
 
 `src/userChrome.css` provides the styling; `src/container-dot.uc.js` reads Zen's
 active workspace and suppresses the matching dot. Both files are required for
@@ -49,37 +51,6 @@ It is a manual local setup, not a documented local-folder import button.
    settings, enable JavaScript from unofficial sources (`sine.allow-unsafe-js`
    in `about:config`). The workspace-aware behavior requires this script.
 3. **Fully quit Zen**, including other windows using that browser profile.
-4. From this repository's directory, run the following, replacing the example
-   path with the profile directory from step 2. It copies the mod and adds its
-   entry to Sine's registry while preserving other mods. It backs up an existing
-   local copy and the registry, and disables automatic updates for this test copy.
-
-   ```bash
-   python3 - '/absolute/path/to/your/zen/profile' <<'PY'
-   import json, pathlib, shutil, sys, time
-   repo = pathlib.Path.cwd()
-   profile = pathlib.Path(sys.argv[1]).expanduser()
-   registry = profile / 'chrome/sine-mods/mods.json'
-   if not registry.is_file():
-       raise SystemExit('Sine mods.json not found; check the profile and Sine installation.')
-   manifest = json.loads((repo / 'theme.json').read_text())
-   mods = json.loads(registry.read_text())
-   stamp = str(time.time_ns())
-   shutil.copy2(registry, registry.with_name('mods.json.backup-' + stamp))
-   target = registry.parent / manifest['id']
-   if target.exists():
-       shutil.copytree(target, target.with_name(target.name + '.backup-' + stamp))
-   shutil.copytree(repo / 'src', target / 'src', dirs_exist_ok=True)
-   shutil.copy2(repo / 'theme.json', target / 'theme.json')
-   manifest.update({'enabled': True, 'no-updates': True})
-   mods[manifest['id']] = manifest
-   registry.write_text(json.dumps(mods, indent=2) + '\n')
-   print('Installed local test copy:', target)
-   PY
-   ```
-
-5. Start Zen. Confirm **Zen Container Dot** is enabled in Sine Mods. Re-run step 4
-   with Zen closed after editing the source files; restart to load those edits.
 
 To undo, uninstall **Zen Container Dot** through Sine and re-enable your previous
 mod if desired. The timestamped backups remain available for restoration with Zen
@@ -99,15 +70,15 @@ copy first so the remote installation replaces it cleanly.
 ## Behavior checks
 
 1. Assign Personal as the container for one Space. Open Personal, Work, and No
-   Container tabs there. Personal and No Container should have no dot; Work
-   should retain its dot, selected or inactive.
+   Container tabs there. Personal should have no dot; Work should retain its dot
+   and No Container should have a neutral dot, selected or inactive.
 2. Select the Work tab while still viewing the Personal Space. Personal dots
    should stay hidden: the rule follows the Space, not the selected tab.
 3. Switch to a Space assigned to Work. For tabs visible there (including shared
    Essentials), Work dots should disappear and Personal dots should appear.
 4. Change the viewed Space's assigned container without restarting. Verify the
    dots update. Clear its container assignment: every container tab should now
-   have its dot, while No Container tabs still have none.
+   have its dot, while No Container tabs lose theirs.
 5. Check newly opened tabs, pinned tabs, Essentials, collapsed sidebar layouts,
    light/dark themes, and a second window viewing another Space. Verify each
    window follows its own Space. Restart and confirm the restored Space works.

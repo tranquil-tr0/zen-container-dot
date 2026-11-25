@@ -28,10 +28,16 @@ function browser(containerTabId, iconStacks = []) {
     removeEventListener: (name, fn) => listeners.get(name)?.delete(fn),
     addUnloadListener: fn => { window.sineCleanup = fn; },
   };
+  const rootAttributes = new Set();
+  const selectors = [];
   const document = {
-    documentElement: { appendChild: style => styles.push(style) },
+    documentElement: {
+      appendChild: style => styles.push(style),
+      toggleAttribute: (name, force) => { force ? rootAttributes.add(name) : rootAttributes.delete(name); },
+      removeAttribute: name => rootAttributes.delete(name),
+    },
     createElementNS: () => ({ textContent: "", remove() { this.removed = true; } }),
-    querySelectorAll: () => { stats.scans++; return iconStacks; },
+    querySelectorAll: selector => { stats.scans++; selectors.push(selector); return iconStacks; },
   };
   const context = vm.createContext({
     window, document,
@@ -50,7 +56,7 @@ function browser(containerTabId, iconStacks = []) {
   const run = () => vm.runInContext(script, context);
   run();
   return {
-    window, styles, run, stats, observed,
+    window, styles, run, stats, observed, rootAttributes, selectors,
     css: () => styles.at(-1).textContent,
     workspace: value => { workspace = value; },
     event: (name, target) => { for (const fn of listeners.get(name) ?? []) fn({ type: name, target }); },
@@ -290,4 +296,38 @@ test("moving an existing tab refreshes alignment even when its size stays consta
   assert.equal(second.reads, 2);
   const x = parseFloat(first.properties.get("--zen-container-dot-x")) / 100 * first.rect.width;
   assert.ok(Math.abs(x - 18) < 0.001);
+});
+
+test("No Container tabs get dots only in a Space with an assigned container", () => {
+  const fixture = measuredStack();
+  const app = browser(0, [fixture.stack]);
+  const defaultSelector = /:not\(\[usercontextid\]\), \[usercontextid="0"\]/;
+  assert.equal(app.rootAttributes.has("zen-container-dot-default"), false);
+  assert.doesNotMatch(app.selectors.at(-1), defaultSelector);
+
+  // Assigning a container rescans to include No Container tabs, without an extra event.
+  app.workspace({ containerTabId: 4 });
+  app.event("ZenWorkspaceDataChanged");
+  app.flush();
+  assert.equal(app.rootAttributes.has("zen-container-dot-default"), true);
+  assert.match(app.selectors.at(-1), defaultSelector);
+  assert.equal(app.stats.scans, 2);
+
+  // Switching to another assigned container keeps the set unchanged: no rescan.
+  app.workspace({ containerTabId: 5 });
+  app.mutate();
+  app.flush();
+  assert.equal(app.stats.scans, 2);
+
+  app.workspace({ containerTabId: 0 });
+  app.mutate();
+  app.flush();
+  assert.equal(app.rootAttributes.has("zen-container-dot-default"), false);
+  assert.doesNotMatch(app.selectors.at(-1), defaultSelector);
+
+  app.workspace({ containerTabId: 4 });
+  app.mutate();
+  app.flush();
+  app.window.sineCleanup();
+  assert.equal(app.rootAttributes.size, 0);
 });
