@@ -36,6 +36,7 @@
  * Override with --zen-container-dot-default-color. */
 :root[zen-container-dot-default] .tabbrowser-tab:is(:not([usercontextid]), [usercontextid="0"]) .tab-icon-stack::after {
   background-color: var(--zen-container-dot-default-color, currentColor);
+  opacity: 0.2;
 }
 
 /* Replace the standard container line with the favicon dot. */
